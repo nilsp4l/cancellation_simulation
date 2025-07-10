@@ -7,7 +7,6 @@ add_executable(${EXECUTABLE_NAME} main.cpp)
 
 target_include_directories(${EXECUTABLE_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
-add_subdirectory(tree)
-add_subdirectory(benchmark)
+add_subdirectory(cancellation)
 
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC benchmark)

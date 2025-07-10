@@ -1,9 +1,9 @@
 #include <iostream>
-#include "tree/InnerNodeImpl.hpp"
-#include "tree/LeafNodeImpl.hpp"
-#include "tree/Builder.hpp"
+#include "cancellation/tree/InnerNodeImpl.hpp"
+#include "cancellation/tree/LeafNodeImpl.hpp"
+#include "cancellation/tree/Builder.hpp"
 #include <memory>
-#include "benchmark/CancelCheckpointRegistry.hpp"
+#include "cancellation/benchmark/CancelCheckpointRegistry.hpp"
 
 
 int main()
