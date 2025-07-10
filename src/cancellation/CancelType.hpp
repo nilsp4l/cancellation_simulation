@@ -1,8 +1,13 @@
 #pragma once
 
-enum class CancelType
+namespace cancellation
 {
-    kAtomicEnum,
-    kFunctionExchg,
-    kInterval
-};
+
+    enum class CancelType
+    {
+        kAtomicEnum,
+        kFunctionExchg,
+        kInterval
+    };
+
+}

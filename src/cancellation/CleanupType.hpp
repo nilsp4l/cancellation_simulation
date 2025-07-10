@@ -1,7 +1,10 @@
 #pragma once
 
-enum class CleanupType
+namespace cancellation
 {
-    kErrorReturn,
-    kException
-};
+    enum class CleanupType
+    {
+        kErrorReturn,
+        kException
+    };
+}

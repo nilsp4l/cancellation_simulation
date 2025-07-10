@@ -5,8 +5,9 @@ namespace cancellation::tree
     class Node
     {
         public:
+        virtual ~Node() = default;
 
-        virtual bool next() = 0;
+        virtual int next() = 0;
     };
 
 }

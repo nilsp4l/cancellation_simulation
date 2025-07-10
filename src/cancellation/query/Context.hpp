@@ -1,6 +1,64 @@
 #pragma once
 
-class Context
-{
+#include "cancellation/CancelType.hpp"
+#include "cancellation/CleanupType.hpp"
+#include "cancellation/util/CheckReturnValue.hpp"
+#include "cancellation/util/ExecutionReturnValue.hpp"
+#include "cancellation/query/Exception.hpp"
+#include "cancellation/benchmark/CancelCheckpointRegistry.hpp"
+#include <atomic>
 
-};
+namespace cancellation::query {
+    template<CancelType cancel_type, CleanupType cleanup_type>
+    class Context {
+    };
+
+    template<CleanupType proc_cleanup_type>
+        struct CancelProcedure {
+    };
+
+    template<>
+    struct CancelProcedure<CleanupType::kErrorReturn> {
+        static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
+            util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
+            if (static_cast<bool>(error)) {
+                cancel_checkpoint_registry->registerRegistered();
+                return true;
+            }
+            return false;
+        }
+    };
+
+    template<>
+    struct CancelProcedure<CleanupType::kException> {
+        static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
+            util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
+            if (static_cast<bool>(error)) {
+                cancel_checkpoint_registry->registerRegistered();
+                throw Exception{error};
+            }
+        }
+    };
+
+    template<CleanupType cleanup_type>
+    class Context<CancelType::kAtomicEnum, cleanup_type> {
+
+
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+        }
+
+        void markInterrupted(util::Error error) {
+            error_ = error;
+        }
+
+        typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
+            CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
+        }
+
+    private:
+        std::atomic<util::Error> error_{util::Error::kSuccess};
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+    };
+}
