@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ExecutionReturnValue.hpp"
 #include "cancellation/CleanupType.hpp"
 
 namespace cancellation::util {
@@ -15,6 +16,8 @@ namespace cancellation::util {
 
     template<>
     struct CheckReturnValue<CleanupType::kErrorReturn> {
-        using ReturnT = bool;
+        using ReturnT = Error;
     };
+
+
 }

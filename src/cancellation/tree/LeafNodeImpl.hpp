@@ -9,15 +9,26 @@ namespace cancellation::tree {
     class LeafNodeImpl : public Node {
     };
 
-    template<>
-    class LeafNodeImpl<CancelType::kAtomicEnum, CleanupType::kErrorReturn> : public Node {
+    template<CleanupType cleanup_type>
+    class LeafNodeImpl<CancelType::kAtomicEnum, cleanup_type> : public Node {
     public:
         explicit LeafNodeImpl(std::size_t delay_count,
                               query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> *
                               context) : delay_count_(delay_count), context_(context) {
         }
 
+
+
         int next() override {
+            if constexpr (cleanup_type == CleanupType::kErrorReturn) {
+                if (auto error = context_->checkForInterrupt(); static_cast<bool>(error)) {
+                    return static_cast<int>(error);
+                }
+            }
+            else {
+                context_->checkForInterrupt(); // throws
+            }
+
             if (--delay_count_ > 0) {
                 return static_cast<int>(false);
             }
@@ -25,6 +36,7 @@ namespace cancellation::tree {
             // we are done
             return static_cast<int>(true);
         }
+
 
     private:
         volatile std::size_t delay_count_;

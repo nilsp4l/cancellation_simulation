@@ -13,7 +13,7 @@ namespace cancellation::query {
     class Context {
     };
 
-    template<CleanupType proc_cleanup_type>
+    template<CleanupType>
         struct CancelProcedure {
     };
 
@@ -22,10 +22,10 @@ namespace cancellation::query {
         static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
             util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (static_cast<bool>(error)) {
-                cancel_checkpoint_registry->registerRegistered();
-                return true;
+                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kRegistered);
+                return error;
             }
-            return false;
+            return util::Error::kSuccess;
         }
     };
 
@@ -34,7 +34,7 @@ namespace cancellation::query {
         static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
             util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (static_cast<bool>(error)) {
-                cancel_checkpoint_registry->registerRegistered();
+                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kRegistered);
                 throw Exception{error};
             }
         }
@@ -54,7 +54,7 @@ namespace cancellation::query {
         }
 
         typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
-            CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
+            return CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
         }
 
     private:
