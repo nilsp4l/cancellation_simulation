@@ -6,55 +6,63 @@
 #include <string>
 #include "cancellation/util/ToString.hpp"
 
-namespace cancellation::benchmark
-{
-    class CancelCheckpointRegistry
-    {
+namespace cancellation::benchmark {
+    class CancelCheckpointRegistry {
     public:
         using CheckpointT = std::chrono::steady_clock::time_point;
+
         enum class Checkpoint : std::size_t {
-            kRegistered = 0,
-            kExecutionStarted,
+            kExecutionStarted = 0,
+            kCancelRegistered,
+            kCancelInitiated,
             kExecutionFinished
         };
 
 
-        static constexpr std::size_t no_checkpoints{3};
+        static constexpr std::size_t no_checkpoints{4};
 
         void registerCheckpoint(Checkpoint checkpoint);
 
-        [[nodiscard]] std::array<std::optional<CheckpointT>, no_checkpoints> getCheckpoints(Checkpoint checkpoint) const;
+        [[nodiscard]] std::array<std::optional<std::chrono::time_point<std::chrono::steady_clock>>, no_checkpoints>
+        getCheckpoints() const;
 
     private:
-        std::array<std::optional<CheckpointT>, no_checkpoints> registered_checkpoints_;
+        std::array<std::optional<std::chrono::time_point<std::chrono::steady_clock>>, no_checkpoints> registered_checkpoints_;
     };
-    template <typename T, T>
+
+    template<typename T, T>
     struct ToString {
-
     };
 
-    template <>
-    struct ToString<benchmark::CancelCheckpointRegistry::Checkpoint, benchmark::CancelCheckpointRegistry::Checkpoint::kRegistered> {
-        static std::string value()
-        {
-            return "registered";
-        }
-    };
 
-    template <>
+    template<>
     struct ToString<CancelCheckpointRegistry::Checkpoint, CancelCheckpointRegistry::Checkpoint::kExecutionStarted> {
-        static std::string value()
-        {
-            return "execution started";
+        static std::string value() {
+            return "execution-started";
         }
     };
 
-    template <>
+    template<>
+    struct ToString<benchmark::CancelCheckpointRegistry::Checkpoint,
+                benchmark::CancelCheckpointRegistry::Checkpoint::kCancelRegistered> {
+        static std::string value() {
+            return "cancel-registered";
+        }
+    };
+
+    template<>
+    struct ToString<benchmark::CancelCheckpointRegistry::Checkpoint,
+                benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated> {
+        static std::string value() {
+            return "cancel-initiated";
+        }
+    };
+
+
+    template<>
     struct ToString<CancelCheckpointRegistry::Checkpoint, CancelCheckpointRegistry::Checkpoint::kExecutionFinished> {
-        static std::string value()
-        {
-            return "execution finished";
+        static std::string value() {
+            return "execution-finished";
         }
     };
-
 }

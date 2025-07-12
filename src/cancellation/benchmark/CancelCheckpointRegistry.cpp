@@ -12,9 +12,7 @@ namespace cancellation::benchmark
 
 
     }
-    std::array<std::optional<CancelCheckpointRegistry::CheckpointT>, CancelCheckpointRegistry::no_checkpoints> CancelCheckpointRegistry::getCheckpoints(Checkpoint checkpoint) const {
-        auto index{static_cast<std::size_t>(checkpoint)};
-        assert(index < no_checkpoints);
+    std::array<std::optional<CancelCheckpointRegistry::CheckpointT>, CancelCheckpointRegistry::no_checkpoints> CancelCheckpointRegistry::getCheckpoints() const {
         return registered_checkpoints_;
     }
 }

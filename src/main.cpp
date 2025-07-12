@@ -9,6 +9,7 @@
 #include "cancellation/CleanupType.hpp"
 #include "cancellation/util/Impl.hpp"
 #include "cancellation/benchmark/Benchmark.hpp"
+#include "cancellation/benchmark/Suite.hpp"
 
 
 int main()
@@ -17,7 +18,7 @@ int main()
     cancellation::benchmark::CancelCheckpointRegistry foo;
     auto context{std::make_unique<cancellation::query::Context<cancellation::CancelType::kAtomicEnum, cancellation::CleanupType::kErrorReturn>>(&foo)};
 
-    node = cancellation::tree::Builder<cancellation::CancelType::kAtomicEnum, cancellation::CleanupType::kErrorReturn, 1'000'000'000, 10>::build(context.get());
+    node = cancellation::tree::Builder<cancellation::CancelType::kAtomicEnum, cancellation::CleanupType::kErrorReturn, 1'000'000, 10>::build(context.get());
 
     using namespace std::chrono_literals;
     std::thread th{[&](){std::this_thread::sleep_for(2s);
@@ -29,9 +30,14 @@ int main()
         std::cout << "cancelled" << std::endl;
     }
 
-    foo.registerCheckpoint(cancellation::benchmark::CancelCheckpointRegistry::Checkpoint::kRegistered);
+    foo.registerCheckpoint(cancellation::benchmark::CancelCheckpointRegistry::Checkpoint::kCancelRegistered);
    th.join();
 
     cancellation::benchmark::Benchmark<10, 100, cancellation::util::Impl<cancellation::CancelType::kAtomicEnum, cancellation::CleanupType::kErrorReturn>>::run();
+
+    cancellation::benchmark::Suite suite;
+    suite.runTests();
+
+
 
 }

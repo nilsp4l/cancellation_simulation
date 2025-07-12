@@ -3,21 +3,28 @@
 #include <array>
 #include <string>
 
-class Position {
+namespace cancellation::benchmark {
 
-public:
-    static constexpr std::size_t no_deltas{3};
-    Position(std::string name, std::array<std::size_t, no_deltas> entries) : name_(std::move(name)), entries_(entries) {}
+    template <std::size_t no_entries>
+    class Position {
 
-    [[nodiscard]] std::string getName() const {
-        return name_;
-    }
+    public:
 
-    [[nodiscard]] std::array<std::size_t, no_deltas> getEntries() const
-    {
-        return entries_;
-    }
-private:
-    const std::string name_;
-    const std::array<std::size_t, no_deltas> entries_;
-};
+
+        Position(std::string name, std::array<std::optional<std::size_t>, no_entries> entries) : name_(std::move(name)), entries_(std::move(entries)) {}
+
+        [[nodiscard]] std::string getName() const {
+            return name_;
+        }
+
+
+        [[nodiscard]] std::array<std::optional<std::size_t>, no_entries> getEntries() const {
+            return entries_;
+        }
+
+
+    private:
+        const std::string name_;
+        const std::array<std::optional<std::size_t>, no_entries> entries_;
+    };
+}
