@@ -3,6 +3,7 @@
 #include "cancellation/tree/LeafNode.hpp"
 #include "cancellation/CancelType.hpp"
 #include "cancellation/CleanupType.hpp"
+#include "cancellation/query/Context.hpp"
 
 namespace cancellation::tree {
     template<CancelType cancel_type, CleanupType cleanup_type>

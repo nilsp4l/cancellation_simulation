@@ -4,12 +4,12 @@
 #include <chrono>
 #include <optional>
 #include <string>
-#include "cancellation/util/ToString.hpp"
+#include "cancellation/benchmark/ToString.hpp"
 
 namespace cancellation::benchmark {
     class CancelCheckpointRegistry {
     public:
-        using CheckpointT = std::chrono::steady_clock::time_point;
+        using CheckpointT = std::chrono::high_resolution_clock::time_point;
 
         enum class Checkpoint : std::size_t {
             kExecutionStarted = 0,
@@ -23,16 +23,14 @@ namespace cancellation::benchmark {
 
         void registerCheckpoint(Checkpoint checkpoint);
 
-        [[nodiscard]] std::array<std::optional<std::chrono::time_point<std::chrono::steady_clock>>, no_checkpoints>
+        [[nodiscard]] std::array<std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>>, no_checkpoints>
         getCheckpoints() const;
 
     private:
-        std::array<std::optional<std::chrono::time_point<std::chrono::steady_clock>>, no_checkpoints> registered_checkpoints_;
+        std::array<std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>>, no_checkpoints> registered_checkpoints_;
     };
 
-    template<typename T, T>
-    struct ToString {
-    };
+
 
 
     template<>

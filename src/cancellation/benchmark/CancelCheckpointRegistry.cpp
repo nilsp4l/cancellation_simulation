@@ -8,7 +8,7 @@ namespace cancellation::benchmark
     void CancelCheckpointRegistry::registerCheckpoint(Checkpoint checkpoint) {
         auto index{static_cast<std::size_t>(checkpoint)};
         assert(index < no_checkpoints);
-        registered_checkpoints_[index] = std::chrono::steady_clock::now();
+        registered_checkpoints_[index] = std::chrono::high_resolution_clock::now();
 
 
     }

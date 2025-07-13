@@ -22,7 +22,7 @@ namespace cancellation::query {
         static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
             util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (static_cast<bool>(error)) {
-                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelRegistered);
+                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
                 return error;
             }
             return util::Error::kSuccess;
@@ -34,7 +34,7 @@ namespace cancellation::query {
         static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
             util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (static_cast<bool>(error)) {
-                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelRegistered);
+                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
                 throw Exception{error};
             }
         }
