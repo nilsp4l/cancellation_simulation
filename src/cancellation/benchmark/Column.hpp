@@ -26,10 +26,7 @@ namespace cancellation::benchmark {
         using type = std::string;
     };
 
-    template<>
-    struct ColumnType<ColumnEnum::kCancelDelayMs> {
-        using type = std::size_t;
-    };
+
 
     template<>
     struct ToString<ColumnEnum, ColumnEnum::kName> {

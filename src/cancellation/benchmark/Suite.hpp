@@ -12,7 +12,7 @@ namespace cancellation::benchmark {
     class Suite {
     public:
         void runTests() {
-            auto results = Benchmark<10, 1'000'000'000, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
+            auto results = Benchmark<10, 100'000'000, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
             util::Impl<CancelType::kAtomicEnum, CleanupType::kException>,
             util::Impl<CancelType::kFunctionExchg, CleanupType::kException>,
             util::Impl<CancelType::kInterval, CleanupType::kErrorReturn>,

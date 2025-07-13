@@ -13,7 +13,7 @@ namespace cancellation::benchmark {
 
     class Result {
     public:
-        Result(const std::string& name, std::size_t cancel_delay_ms,
+        Result(const std::string& name, std::optional<std::size_t> cancel_delay_ms,
                const CancelCheckpointRegistry &cancel_checkpoint_registry) :  name_(name), cancel_delay_ms_(
             cancel_delay_ms) {
             auto checkpoints_tps{cancel_checkpoint_registry.getCheckpoints()};
@@ -30,7 +30,7 @@ namespace cancellation::benchmark {
             return name_;
         }
 
-        [[nodiscard]] std::size_t getCancelDelayMs() const {
+        [[nodiscard]] std::optional<std::size_t> getCancelDelayMs() const {
             return cancel_delay_ms_;
         }
 
@@ -47,7 +47,7 @@ namespace cancellation::benchmark {
 
     private:
         const std::string name_;
-        const std::size_t cancel_delay_ms_;
+        const std::optional<std::size_t> cancel_delay_ms_;
         std::array<std::optional<std::size_t>, CancelCheckpointRegistry::no_checkpoints> checkpoints_{};
     };
 
@@ -55,7 +55,7 @@ namespace cancellation::benchmark {
     template<typename implementation, std::size_t size, std::size_t delay>
     class Test {
     public:
-        static Result run(std::size_t cancel_delay_ms) {
+        static Result run(std::optional<std::size_t> cancel_delay_ms) {
             CancelCheckpointRegistry cancel_checkpoint_registry;
             query::Context<implementation::cancelType(), implementation::cleanupType()> context{
                 &cancel_checkpoint_registry
@@ -63,14 +63,18 @@ namespace cancellation::benchmark {
             auto root{
                 tree::Builder<implementation::cancelType(), implementation::cleanupType(), delay, size>::build(&context)
             };
-            std::thread cancel_thread{
-                [&]() {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(cancel_delay_ms));
-                    cancel_checkpoint_registry.registerCheckpoint(
-                        CancelCheckpointRegistry::Checkpoint::kCancelRegistered);
-                    context.markInterrupted(util::Error::kQueryCancelled);
-                }
-            };
+            std::unique_ptr<std::thread> cancel_thread;
+            if (cancel_delay_ms) {
+                cancel_thread = std::make_unique<std::thread>(
+                    [&]() {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(*cancel_delay_ms));
+                        cancel_checkpoint_registry.registerCheckpoint(
+                            CancelCheckpointRegistry::Checkpoint::kCancelRegistered);
+                        context.markInterrupted(util::Error::kQueryCancelled);
+                    }
+                );
+            }
+
             cancel_checkpoint_registry.registerCheckpoint(CancelCheckpointRegistry::Checkpoint::kExecutionStarted);
             if constexpr (implementation::cleanupType() == CleanupType::kException) {
                 try {
@@ -81,7 +85,10 @@ namespace cancellation::benchmark {
                 root->next();
             }
             cancel_checkpoint_registry.registerCheckpoint(CancelCheckpointRegistry::Checkpoint::kExecutionFinished);
-            cancel_thread.join();
+            if (cancel_thread) {
+                cancel_thread->join();
+            }
+
             return Result{implementation::toString(), cancel_delay_ms, cancel_checkpoint_registry};
         }
     };

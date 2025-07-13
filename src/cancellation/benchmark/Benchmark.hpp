@@ -11,8 +11,8 @@ namespace cancellation::benchmark {
     struct Benchmark {
     public:
 
-        static constexpr std::size_t no_cancel_delays{4};
-        static constexpr std::array<std::size_t, no_cancel_delays> cancel_delays{{10, 100, 2000, 4000}};
+        static constexpr std::size_t no_cancel_delays{5};
+        static constexpr std::array<std::optional<std::size_t>, no_cancel_delays> cancel_delays{{std::nullopt, 10, 100, 2000, 4000}};
         static constexpr std::size_t no_repetitions{5};
 
         static constexpr std::size_t no_tests{no_cancel_delays * no_repetitions};
