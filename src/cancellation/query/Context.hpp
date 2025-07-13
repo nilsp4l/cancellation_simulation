@@ -93,6 +93,43 @@ namespace cancellation::query {
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };
 
+
+    static void cancel(benchmark::CancelCheckpointRegistry* cancel_checkpoint_registry) {
+        cancel_checkpoint_registry->registerCheckpoint(
+                        benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+        throw Exception{util::Error::kQueryCancelled};
+    }
+
+    static void nop(benchmark::CancelCheckpointRegistry*) {
+
+    }
+
+    // this approach only makes sens with an exception thrown
+    template<>
+    class Context<CancelType::kFunctionPointerExchg, CleanupType::kException> {
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+        }
+
+        void markInterrupted(util::Error error) {
+            if (static_cast<bool>(error)) {
+                cancel_function_ = cancel;
+            }
+        }
+
+
+
+        typename util::CheckReturnValue<CleanupType::kException>::ReturnT checkForInterrupt() {
+            (*cancel_function_)(cancel_checkpoint_registry_);
+        }
+
+    private:
+        void (*cancel_function_)(benchmark::CancelCheckpointRegistry*) = nop;
+
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+    };
+
     template<CleanupType cleanup_type>
     class Context<CancelType::kInterval, cleanup_type> {
     public:
@@ -100,7 +137,9 @@ namespace cancellation::query {
             cancel_checkpoint_registry) {
             next_check_ = std::chrono::steady_clock::now().time_since_epoch().count() + interval_ms;
         }
+
         static constexpr std::size_t interval_ms{10};
+
         void markInterrupted(util::Error error) {
             error_ = error;
         }
@@ -111,14 +150,11 @@ namespace cancellation::query {
                 return CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
             }
             return util::CheckReturnValue<cleanup_type>::not_cancelled();
-
         }
 
     private:
         std::size_t next_check_;
         std::atomic<util::Error> error_{util::Error::kSuccess};
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
-
     };
-
 }

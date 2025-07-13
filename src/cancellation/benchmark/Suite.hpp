@@ -15,6 +15,7 @@ namespace cancellation::benchmark {
             auto results = Benchmark<10, 100'000'000, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
             util::Impl<CancelType::kAtomicEnum, CleanupType::kException>,
             util::Impl<CancelType::kFunctionExchg, CleanupType::kException>,
+            util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kException>,
             util::Impl<CancelType::kInterval, CleanupType::kErrorReturn>,
             util::Impl<CancelType::kInterval, CleanupType::kException>>::run();
             csv::Table<static_cast<std::size_t>(ColumnEnum::size), ColumnType<ColumnEnum::kName>::type, ColumnType<ColumnEnum::kExecutionStarted>::type, ColumnType<ColumnEnum::kRegistered>::type, ColumnType<ColumnEnum::kCancelInitiated>::type,
