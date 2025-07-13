@@ -10,7 +10,7 @@
 #include <functional>
 
 namespace cancellation::query {
-    template<CancelType cancel_type, CleanupType cleanup_type>
+    template<CancelType, CleanupType>
     class Context {
     };
 
@@ -92,4 +92,33 @@ namespace cancellation::query {
         };
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };
+
+    template<CleanupType cleanup_type>
+    class Context<CancelType::kInterval, cleanup_type> {
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+            next_check_ = std::chrono::steady_clock::now().time_since_epoch().count() + interval_ms;
+        }
+        static constexpr std::size_t interval_ms{10};
+        void markInterrupted(util::Error error) {
+            error_ = error;
+        }
+
+        typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
+            if (const auto now = std::chrono::steady_clock::now().time_since_epoch().count(); now >= next_check_) {
+                next_check_ = now + interval_ms;
+                return CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
+            }
+            return util::CheckReturnValue<cleanup_type>::not_cancelled();
+
+        }
+
+    private:
+        std::size_t next_check_;
+        std::atomic<util::Error> error_{util::Error::kSuccess};
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+
+    };
+
 }

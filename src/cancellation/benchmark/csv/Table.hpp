@@ -13,7 +13,7 @@ namespace cancellation::benchmark::csv {
     public:
         using RowT = std::tuple<row_types...>;
 
-        Table(const std::array<std::string, no_columns>& column_names) : column_names_(column_names) {
+        explicit Table(const std::array<std::string, no_columns>& column_names) : column_names_(column_names) {
             static_assert(no_columns == sizeof...(row_types));
 
         }
