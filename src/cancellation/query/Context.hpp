@@ -7,6 +7,7 @@
 #include "cancellation/query/Exception.hpp"
 #include "cancellation/benchmark/CancelCheckpointRegistry.hpp"
 #include <atomic>
+#include <functional>
 
 namespace cancellation::query {
     template<CancelType cancel_type, CleanupType cleanup_type>
@@ -14,7 +15,7 @@ namespace cancellation::query {
     };
 
     template<CleanupType>
-        struct CancelProcedure {
+    struct CancelProcedure {
     };
 
     template<>
@@ -22,7 +23,8 @@ namespace cancellation::query {
         static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
             util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (static_cast<bool>(error)) {
-                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                cancel_checkpoint_registry->registerCheckpoint(
+                    benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
                 return error;
             }
             return util::Error::kSuccess;
@@ -31,10 +33,11 @@ namespace cancellation::query {
 
     template<>
     struct CancelProcedure<CleanupType::kException> {
-        static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
+        static constexpr util::CheckReturnValue<CleanupType::kException>::ReturnT execute(
             util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (static_cast<bool>(error)) {
-                cancel_checkpoint_registry->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                cancel_checkpoint_registry->registerCheckpoint(
+                    benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
                 throw Exception{error};
             }
         }
@@ -42,8 +45,6 @@ namespace cancellation::query {
 
     template<CleanupType cleanup_type>
     class Context<CancelType::kAtomicEnum, cleanup_type> {
-
-
     public:
         explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
             cancel_checkpoint_registry) {
@@ -59,6 +60,36 @@ namespace cancellation::query {
 
     private:
         std::atomic<util::Error> error_{util::Error::kSuccess};
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+    };
+
+    // this approach only makes sens with an exception thrown
+    template<>
+    class Context<CancelType::kFunctionExchg, CleanupType::kException> {
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+        }
+
+        void markInterrupted(util::Error error) {
+            if (static_cast<bool>(error)) {
+                cancel_function_ = [error, this]() {
+                    cancel_checkpoint_registry_->registerCheckpoint(
+                        benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                    throw Exception{error};
+                };
+            }
+        }
+
+        typename util::CheckReturnValue<CleanupType::kException>::ReturnT checkForInterrupt() {
+            cancel_function_();
+        }
+
+    private:
+        std::function<void()> cancel_function_{
+            []() {
+            }
+        };
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };
 }

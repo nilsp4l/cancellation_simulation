@@ -8,16 +8,17 @@
 
 namespace cancellation::tree
 {
+    /*
     template <CancelType cancel_type, CleanupType cleanup_type>
     class InnerNodeImpl : public Node
     {
     };
-
-    template <>
-    class InnerNodeImpl<CancelType::kAtomicEnum, CleanupType::kErrorReturn> : public InnerNode
+    */
+    template <CancelType cancel_type, CleanupType cleanup_type>
+    class InnerNodeImpl : public InnerNode
     {
     public:
-        explicit InnerNodeImpl(std::array<std::unique_ptr<Node>, InnerNode::no_children> inputs, query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn>* context) : inputs_(std::move(inputs)), context_(context) {}
+        explicit InnerNodeImpl(std::array<std::unique_ptr<Node>, InnerNode::no_children> inputs, query::Context<cancel_type, cleanup_type>* context) : inputs_(std::move(inputs)), context_(context) {}
 
         int next() override
         {
@@ -32,7 +33,7 @@ namespace cancellation::tree
 
     private:
         std::array<std::unique_ptr<Node>, InnerNode::no_children> inputs_;
-        query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> *context_;
+        query::Context<cancel_type, cleanup_type> *context_;
     };
 
 }

@@ -6,15 +6,17 @@
 #include "cancellation/query/Context.hpp"
 
 namespace cancellation::tree {
-    template<CancelType cancel_type, CleanupType cleanup_type>
+    /*
+    template<CancelType, CleanupType>
     class LeafNodeImpl : public Node {
     };
+    */
 
-    template<CleanupType cleanup_type>
-    class LeafNodeImpl<CancelType::kAtomicEnum, cleanup_type> : public Node {
+    template<CancelType cancel_type, CleanupType cleanup_type>
+    class LeafNodeImpl: public Node {
     public:
         explicit LeafNodeImpl(std::size_t delay_count,
-                              query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> *
+                              query::Context<cancel_type, cleanup_type> *
                               context) : delay_count_(delay_count), context_(context) {
         }
 
@@ -41,6 +43,6 @@ namespace cancellation::tree {
 
     private:
         volatile std::size_t delay_count_;
-        query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> *context_;
+        query::Context<cancel_type, cleanup_type> *context_;
     };
 }
