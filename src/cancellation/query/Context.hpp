@@ -166,7 +166,8 @@ namespace cancellation::query {
     public:
         explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
             cancel_checkpoint_registry) {
-            next_check_ = std::chrono::steady_clock::now().time_since_epoch().count() + interval_ms;
+            next_check_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count() + interval_ms;
         }
 
         static constexpr std::size_t interval_ms{10};
