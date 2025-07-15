@@ -1,22 +1,25 @@
 #pragma once
-#include <cstdint>
+
 #include "cancellation/benchmark/CancelCheckpointRegistry.hpp"
 #include "cancellation/CleanupType.hpp"
 #include "cancellation/query/Context.hpp"
 #include "cancellation/tree/Builder.hpp"
 #include "cancellation/util/ExceptionReturnValue.hpp"
+#include "cancellation/CancelType.hpp"
 #include <thread>
 #include <string>
 
 
 namespace cancellation::benchmark {
-
-
     class Result {
     public:
-        Result(const std::string& name, std::optional<std::size_t> cancel_delay_ms,
-               const CancelCheckpointRegistry &cancel_checkpoint_registry) :  name_(name), cancel_delay_ms_(
-            cancel_delay_ms) {
+        Result(std::string cancel_type_name, std::string cleanup_type_name, std::optional<std::size_t> cancel_delay_ms,
+               const CancelCheckpointRegistry &cancel_checkpoint_registry) : cancel_type_name_(
+                                                                                 std::move(cancel_type_name)),
+                                                                             cleanup_type_name_(
+                                                                                 std::move(cleanup_type_name)),
+                                                                             cancel_delay_ms_(
+                                                                                 cancel_delay_ms) {
             auto checkpoints_tps{cancel_checkpoint_registry.getCheckpoints()};
             std::transform(checkpoints_tps.begin(), checkpoints_tps.end(), checkpoints_.begin(), [](auto checkpoint) {
                 if (checkpoint) {
@@ -27,8 +30,12 @@ namespace cancellation::benchmark {
         }
 
 
-        [[nodiscard]] std::string getName() const {
-            return name_;
+        [[nodiscard]] std::string getCancelTypeName() const {
+            return cancel_type_name_;
+        }
+
+        [[nodiscard]] std::string getCleanupTypeName() const {
+            return cleanup_type_name_;
         }
 
         [[nodiscard]] std::optional<std::size_t> getCancelDelayMs() const {
@@ -37,7 +44,8 @@ namespace cancellation::benchmark {
 
         auto tuTuple() {
             return std::tuple{
-                getName(),
+                getCancelTypeName(),
+                getCleanupTypeName(),
                 checkpoints_[static_cast<std::size_t>(CancelCheckpointRegistry::Checkpoint::kExecutionStarted)],
                 checkpoints_[static_cast<std::size_t>(CancelCheckpointRegistry::Checkpoint::kCancelRegistered)],
                 checkpoints_[static_cast<std::size_t>(CancelCheckpointRegistry::Checkpoint::kCancelInitiated)],
@@ -47,7 +55,8 @@ namespace cancellation::benchmark {
         }
 
     private:
-        const std::string name_;
+        const std::string cancel_type_name_;
+        const std::string cleanup_type_name_;
         const std::optional<std::size_t> cancel_delay_ms_;
         std::array<std::optional<std::size_t>, CancelCheckpointRegistry::no_checkpoints> checkpoints_{};
     };
@@ -90,7 +99,10 @@ namespace cancellation::benchmark {
                 cancel_thread->join();
             }
 
-            return Result{implementation::toString(), cancel_delay_ms, cancel_checkpoint_registry};
+            return Result{
+                ::cancellation::ToString<CancelType, implementation::cancelType()>::value(),
+                ::cancellation::ToString<CleanupType, implementation::cleanupType()>::value(), cancel_delay_ms, cancel_checkpoint_registry
+            };
         }
     };
 }

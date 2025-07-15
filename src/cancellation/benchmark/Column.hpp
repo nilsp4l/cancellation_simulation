@@ -7,7 +7,8 @@
 
 namespace cancellation::benchmark {
     enum class ColumnEnum : std::size_t {
-        kName = 0,
+        kCancelType = 0,
+        kCleanupType,
         kExecutionStarted,
         kRegistered,
         kCancelInitiated,
@@ -22,16 +23,28 @@ namespace cancellation::benchmark {
     };
 
     template<>
-    struct ColumnType<ColumnEnum::kName> {
+    struct ColumnType<ColumnEnum::kCancelType> {
+        using type = std::string;
+    };
+
+    template<>
+    struct ColumnType<ColumnEnum::kCleanupType> {
         using type = std::string;
     };
 
 
 
     template<>
-    struct ToString<ColumnEnum, ColumnEnum::kName> {
+    struct ToString<ColumnEnum, ColumnEnum::kCancelType> {
         static std::string value() {
-            return "Name";
+            return "CancelType";
+        }
+    };
+
+    template<>
+    struct ToString<ColumnEnum, ColumnEnum::kCleanupType> {
+        static std::string value() {
+            return "CleanupType";
         }
     };
 

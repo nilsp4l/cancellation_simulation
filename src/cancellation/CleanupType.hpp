@@ -11,7 +11,7 @@ namespace cancellation
 
     template <>
     struct ToString<CleanupType, CleanupType::kErrorReturn> {
-        static std::string value(){return "Error Return";};
+        static std::string value(){return "ErrorReturn";};
     };
 
     template <>

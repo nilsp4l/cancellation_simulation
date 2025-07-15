@@ -9,6 +9,7 @@
 #include <atomic>
 #include <functional>
 #include <mutex>
+#include <iostream>
 
 #include "cancellation/util/Status.hpp"
 
@@ -36,7 +37,7 @@ namespace cancellation::query {
         }
 
         static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
-            const util::Status& status, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
+            const util::Status &status, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (unlikely(!status)) {
                 cancel_checkpoint_registry->registerCheckpoint(
                     benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
@@ -58,7 +59,7 @@ namespace cancellation::query {
         }
 
         static constexpr util::CheckReturnValue<CleanupType::kException>::ReturnT execute(
-            const util::Status& status, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
+            const util::Status &status, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
             if (unlikely(!status)) {
                 cancel_checkpoint_registry->registerCheckpoint(
                     benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
@@ -124,14 +125,13 @@ namespace cancellation::query {
     };
 
 
-    static void cancel(benchmark::CancelCheckpointRegistry* cancel_checkpoint_registry) {
+    static void cancel(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
         cancel_checkpoint_registry->registerCheckpoint(
-                        benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+            benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
         throw Exception{util::Error::kQueryCancelled};
     }
 
-    static void nop(benchmark::CancelCheckpointRegistry*) {
-
+    static void nop(benchmark::CancelCheckpointRegistry *) {
     }
 
     // this approach only makes sense with an exception thrown
@@ -149,13 +149,13 @@ namespace cancellation::query {
         }
 
 
-
         typename util::CheckReturnValue<CleanupType::kException>::ReturnT checkForInterrupt() {
             (*cancel_function_)(cancel_checkpoint_registry_);
         }
 
     private:
-        typedef void (*CancelFunc)(benchmark::CancelCheckpointRegistry*);
+        typedef void (*CancelFunc)(benchmark::CancelCheckpointRegistry *);
+
         std::atomic<CancelFunc> cancel_function_ = nop;
 
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
@@ -176,7 +176,8 @@ namespace cancellation::query {
         }
 
         typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
-            if (const auto now = std::chrono::steady_clock::now().time_since_epoch().count(); unlikely(now >= next_check_)) {
+            if (const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count(); unlikely(now >= next_check_)) {
                 next_check_ = now + interval_ms;
                 return CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
             }
@@ -188,7 +189,6 @@ namespace cancellation::query {
         std::atomic<util::Error> error_{util::Error::kSuccess};
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };
-
 
 
     template<CleanupType cleanup_type>
@@ -204,17 +204,15 @@ namespace cancellation::query {
                 status_ = util::Status::Error{"cancelled"};
                 cancel_mutex_.unlock();
             }
-
         }
 
         typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
-            if constexpr(cleanup_type == CleanupType::kErrorReturn) {
+            if constexpr (cleanup_type == CleanupType::kErrorReturn) {
                 cancel_mutex_.lock();
                 auto return_value{CancelProcedure<cleanup_type>::execute(status_, cancel_checkpoint_registry_)};
                 cancel_mutex_.unlock();
                 return return_value;
-            }
-            else {
+            } else {
                 cancel_mutex_.lock();
                 CancelProcedure<cleanup_type>::execute(status_, cancel_checkpoint_registry_);
                 cancel_mutex_.unlock();

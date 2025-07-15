@@ -13,17 +13,17 @@ namespace cancellation {
 
     template<>
     struct ToString<CancelType, CancelType::kAtomicEnum> {
-        static std::string value() { return "Atomic Enum"; };
+        static std::string value() { return "AtomicEnum"; };
     };
 
     template<>
     struct ToString<CancelType, CancelType::kFunctionExchg> {
-        static std::string value() { return "Function Exchange"; };
+        static std::string value() { return "FunctionExchange"; };
     };
 
     template<>
     struct ToString<CancelType, CancelType::kFunctionPointerExchg> {
-        static std::string value() { return "Function Pointer Exchange"; };
+        static std::string value() { return "FunctionPointerExchange"; };
     };
 
 
