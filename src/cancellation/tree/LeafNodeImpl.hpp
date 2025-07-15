@@ -13,7 +13,7 @@ namespace cancellation::tree {
     */
 
     template<CancelType cancel_type, CleanupType cleanup_type>
-    class LeafNodeImpl: public Node {
+    class LeafNodeImpl : public Node {
     public:
         explicit LeafNodeImpl(std::size_t delay_count,
                               query::Context<cancel_type, cleanup_type> *
@@ -21,16 +21,18 @@ namespace cancellation::tree {
         }
 
 
-
         int next() override {
             if constexpr (cleanup_type == CleanupType::kErrorReturn) {
                 if (auto error = context_->checkForInterrupt(); static_cast<bool>(error)) {
                     return static_cast<int>(error);
                 }
-            }
-            else {
+            } else {
                 context_->checkForInterrupt(); // throws
             }
+
+            volatile std::size_t inner_delay{inner_delay_amount};
+
+            while (--inner_delay);
 
             if (--delay_count_ > 0) {
                 return static_cast<int>(false);
@@ -40,9 +42,10 @@ namespace cancellation::tree {
             return static_cast<int>(true);
         }
 
-
     private:
         volatile std::size_t delay_count_;
         query::Context<cancel_type, cleanup_type> *context_;
+
+        static constexpr std::size_t inner_delay_amount{1000};
     };
 }

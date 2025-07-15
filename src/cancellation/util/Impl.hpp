@@ -2,7 +2,7 @@
 
 #include "cancellation/CancelType.hpp"
 #include "cancellation/CleanupType.hpp"
-#include "cancellation/util/ToString.hpp"
+#include "../ToString.hpp"
 
 namespace cancellation::util {
     template<CancelType cancel_type, CleanupType cleanup_type>

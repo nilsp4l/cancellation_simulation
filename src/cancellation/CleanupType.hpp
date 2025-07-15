@@ -1,5 +1,5 @@
 #pragma once
-#include "cancellation/util/ToString.hpp"
+#include "ToString.hpp"
 
 namespace cancellation
 {
@@ -10,12 +10,12 @@ namespace cancellation
     };
 
     template <>
-    struct util::ToString<CleanupType, CleanupType::kErrorReturn> {
+    struct ToString<CleanupType, CleanupType::kErrorReturn> {
         static std::string value(){return "Error Return";};
     };
 
     template <>
-    struct util::ToString<CleanupType, CleanupType::kException> {
+    struct ToString<CleanupType, CleanupType::kException> {
         static std::string value(){return "Exception";};
     };
 

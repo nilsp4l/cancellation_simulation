@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cancellation::util {
+namespace cancellation {
     template <typename T, T>
     struct ToString {
     };

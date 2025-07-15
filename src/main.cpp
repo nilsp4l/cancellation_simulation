@@ -5,7 +5,7 @@
 int main()
 {
 
-    cancellation::benchmark::Suite suite;
-    suite.runTests();
+
+    cancellation::benchmark::Suite::runTests();
 
 }

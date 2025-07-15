@@ -5,14 +5,18 @@
 
 
 namespace cancellation::query {
+    template <typename T>
     class Exception : public std::exception {
     public:
-        explicit Exception(util::Error error) : error_(error) {
+        explicit Exception(T error) : error_(error) {
         }
 
-        util::Error error() const { return error_; }
+        T error() const { return error_; }
 
     private:
-        util::Error error_;
+        T error_;
     };
+
+    template <typename T>
+    Exception(T) -> Exception<T>;
 }

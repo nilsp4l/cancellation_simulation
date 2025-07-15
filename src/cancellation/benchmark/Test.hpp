@@ -4,6 +4,7 @@
 #include "cancellation/CleanupType.hpp"
 #include "cancellation/query/Context.hpp"
 #include "cancellation/tree/Builder.hpp"
+#include "cancellation/util/ExceptionReturnValue.hpp"
 #include <thread>
 #include <string>
 
@@ -79,7 +80,7 @@ namespace cancellation::benchmark {
             if constexpr (implementation::cleanupType() == CleanupType::kException) {
                 try {
                     root->next();
-                } catch (query::Exception &) {
+                } catch (query::Exception<typename util::ExceptionReturnValue<implementation::cancelType()>::type> &) {
                 }
             } else {
                 root->next();

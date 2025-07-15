@@ -9,6 +9,8 @@ namespace cancellation::util {
         kError
     };
 
+
+
     // The values of the specific implementation which suggest what happened after the query is finished/killed, if it is checked via return value rather than exception
 
     template<CancelType cancel_type>

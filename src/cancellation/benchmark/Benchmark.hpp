@@ -1,9 +1,8 @@
 #pragma once
 
-#include "cancellation/tree/Node.hpp"
+
 #include "cancellation/tree/Builder.hpp"
-#include "cancellation/query/Context.hpp"
-#include <algorithm>
+
 #include "cancellation/benchmark/Test.hpp"
 
 namespace cancellation::benchmark {
@@ -13,7 +12,7 @@ namespace cancellation::benchmark {
 
         static constexpr std::size_t no_cancel_delays{5};
         static constexpr std::array<std::optional<std::size_t>, no_cancel_delays> cancel_delays{{std::nullopt, 10, 100, 2000, 4000}};
-        static constexpr std::size_t no_repetitions{1};
+        static constexpr std::size_t no_repetitions{5};
 
         static constexpr std::size_t no_tests{no_cancel_delays * no_repetitions};
 
@@ -33,8 +32,9 @@ namespace cancellation::benchmark {
                 for (std::size_t i{0}; i < no_repetitions; ++i) {
                     tests[index++] = std::make_unique<Result>(Test<implementation, size, delay>::run(cancel_delay));
                 }
-
             }
+
+            std::cout << implementation::toString() << " test done" << std::endl;
 
             return tests;
         }
