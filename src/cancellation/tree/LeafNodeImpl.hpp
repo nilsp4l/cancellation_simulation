@@ -17,13 +17,17 @@ namespace cancellation::tree {
     public:
         explicit LeafNodeImpl(std::size_t delay_count,
                               query::Context<cancel_type, cleanup_type> *
-                              context) : delay_count_(delay_count), context_(context) {
+                              context,
+                              benchmark::CancelCheckpointRegistry *
+                              cancel_checkpoint_registry) : cancel_checkpoint_registry_(cancel_checkpoint_registry),
+                                                            delay_count_(delay_count), context_(context) {
         }
 
 
         int next() override {
             if constexpr (cleanup_type == CleanupType::kErrorReturn) {
                 if (auto error = context_->checkForInterrupt(); static_cast<bool>(error)) {
+                    cancel_checkpoint_registry_->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
                     return static_cast<int>(error);
                 }
             } else {
@@ -35,17 +39,17 @@ namespace cancellation::tree {
             while (--inner_delay);
 
             if (--delay_count_ > 0) {
-                return static_cast<int>(false);
+                return static_cast<int>(util::Error::kSuccess);
             }
 
             // we are done
-            return static_cast<int>(true);
+            return static_cast<int>(util::Error::kFinished);
         }
 
     private:
         volatile std::size_t delay_count_;
         query::Context<cancel_type, cleanup_type> *context_;
-
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
         static constexpr std::size_t inner_delay_amount{1000};
     };
 }

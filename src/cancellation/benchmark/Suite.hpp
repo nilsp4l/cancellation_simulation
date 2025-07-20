@@ -14,12 +14,15 @@ namespace cancellation::benchmark {
         static void runTests() {
             auto results = Benchmark<10, 10'000'000, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kAtomicEnum, CleanupType::kException>,
+                util::Impl<CancelType::kFunctionExchg, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kFunctionExchg, CleanupType::kException>,
+                util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kException>,
+                util::Impl<CancelType::kFunctionPointerExchgCallConv, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kInterval, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kInterval, CleanupType::kException>,
                 util::Impl<CancelType::kUnion, CleanupType::kErrorReturn>,
-                util::Impl<CancelType::kUnion, CleanupType::kException> >::run();
+                util::Impl<CancelType::kUnion, CleanupType::kException>>::run();
             csv::Table<static_cast<std::size_t>(ColumnEnum::size), ColumnType<ColumnEnum::kCancelType>::type, ColumnType
                 <ColumnEnum::kCleanupType>::type, ColumnType<ColumnEnum::kExecutionStarted>::type, ColumnType<
                     ColumnEnum::kRegistered>::type, ColumnType<ColumnEnum::kCancelInitiated>::type,

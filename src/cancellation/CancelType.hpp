@@ -7,6 +7,7 @@ namespace cancellation {
         kAtomicEnum,
         kFunctionExchg,
         kFunctionPointerExchg,
+        kFunctionPointerExchgCallConv,
         kInterval,
         kUnion
     };
@@ -26,6 +27,10 @@ namespace cancellation {
         static std::string value() { return "FunctionPointerExchange"; };
     };
 
+    template <>
+    struct ToString<CancelType, CancelType::kFunctionPointerExchgCallConv> {
+        static std::string value() { return "FunctionPointerExchangeCallConv"; };
+    };
 
     template<>
     struct ToString<CancelType, CancelType::kInterval> {

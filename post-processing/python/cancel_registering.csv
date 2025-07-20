@@ -1,0 +1,12 @@
+CancelType,CleanupType,CancelRegisteringMs
+FunctionPointerExchange,ErrorReturn,0.0013888
+AtomicEnum,Exception,0.0014016
+AtomicEnum,ErrorReturn,0.0015232
+FunctionPointerExchange,Exception,0.0015488
+FunctionPointerExchangeCallConv,ErrorReturn,0.0015872
+FunctionExchange,Exception,0.0035903999999999997
+FunctionExchange,ErrorReturn,0.0051456
+Union,ErrorReturn,0.0108224
+Union,Exception,0.0110848
+Interval,Exception,9.0667136
+Interval,ErrorReturn,9.0881984

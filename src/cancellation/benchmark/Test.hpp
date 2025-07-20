@@ -71,7 +71,7 @@ namespace cancellation::benchmark {
                 &cancel_checkpoint_registry
             };
             auto root{
-                tree::Builder<implementation::cancelType(), implementation::cleanupType(), delay, size>::build(&context)
+                tree::Builder<implementation::cancelType(), implementation::cleanupType(), delay, size>::build(&context, &cancel_checkpoint_registry)
             };
             std::unique_ptr<std::thread> cancel_thread;
             if (cancel_delay_ms) {

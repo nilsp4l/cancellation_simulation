@@ -6,7 +6,8 @@ namespace cancellation::util {
     enum class Error : int {
         kSuccess = 0,
         kQueryCancelled,
-        kError
+        kError,
+        kFinished
     };
 
 

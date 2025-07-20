@@ -10,12 +10,13 @@ if __name__ == '__main__':
 
     execution_time = only_full_execution.groupby(['CancelType', 'CleanupType']).mean().sort_values('ExecutionTimeMs')
     print(execution_time['ExecutionTimeMs'])
+    execution_time['ExecutionTimeMs'].to_csv('exec_time.csv', index = 'False')
     print()
     
     cancel_overall = data[data['CancelDelayMs'].notna()].copy()
     cancel_overall["CancelTimeMs"] = (cancel_overall['ExecutionFinished'] - cancel_overall['CancelInitiated']) / 1e6
     cancel_overall = cancel_overall.groupby(['CancelType', 'CleanupType']).mean().sort_values('CancelTimeMs')
-
+    cancel_overall['CancelTimeMs'].to_csv('cleanup.csv', index = 'False')
     print(cancel_overall['CancelTimeMs'])
     print()
 
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     cancel_registering = data[data['CancelDelayMs'].notna()].copy()
     cancel_registering["CancelRegisteringMs"] = (cancel_registering['CancelInitiated'] - cancel_registering['CancelRegistered']) / 1e6
     cancel_registering = cancel_registering.groupby(['CancelType', 'CleanupType']).mean().sort_values('CancelRegisteringMs')
-
+    cancel_registering['CancelRegisteringMs'].to_csv('cancel_registering.csv', index = 'False')
     print(cancel_registering['CancelRegisteringMs'])
      
     

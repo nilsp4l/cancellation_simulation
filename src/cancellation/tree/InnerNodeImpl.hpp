@@ -22,12 +22,16 @@ namespace cancellation::tree {
         }
 
         int next() override {
-            std::for_each(inputs_.rbegin(), inputs_.rend(), [this](std::unique_ptr<Node> &node) {
-                while (!static_cast<int>(node->next()));
-            });
+            for (auto &node : inputs_) {
+                int error = static_cast<int>(util::Error::kFinished);
+                while (!((error = static_cast<int>(node->next())))) {}
+                if (static_cast<util::Error>(error) != util::Error::kFinished) {
+                    return static_cast<int>(error);
+                }
+            }
 
 
-            return static_cast<int>(true);
+            return static_cast<int>(util::Error::kFinished);
         }
 
     private:

@@ -1,0 +1,12 @@
+CancelType,CleanupType,ExecutionTimeMs
+FunctionPointerExchange,Exception,27054.464102899998
+Interval,Exception,27172.715572099998
+FunctionPointerExchange,ErrorReturn,27227.697941600003
+Interval,ErrorReturn,27329.3941692
+AtomicEnum,ErrorReturn,27602.7905454
+Union,ErrorReturn,28085.9735802
+FunctionExchange,Exception,28133.057933099997
+FunctionExchange,ErrorReturn,28189.036196499997
+AtomicEnum,Exception,28225.426311900002
+Union,Exception,28445.891800399997
+FunctionPointerExchangeCallConv,ErrorReturn,28888.9765941

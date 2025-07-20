@@ -6,7 +6,7 @@ set (CMAKE_BUILD_TYPE Release)
 project(approach_compare)
 
 
-add_compile_options(-Wall -Wextra -Wconversion -pedantic -Wfatal-errors -fsanitize=leak -ftemplate-depth=2000 -O3)
+add_compile_options(-Wall -Wextra -Wconversion -pedantic -Wfatal-errors -g -fsanitize=leak -ftemplate-depth=2000 -O3)
 
 
 add_subdirectory(src)
