@@ -30,23 +30,7 @@ namespace cancellation::query {
     struct CancelProcedure {
     };
 
-    template<>
-    struct CancelProcedure<CleanupType::kErrorReturn> {
-        static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
-            util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
-            return error;
-        }
 
-        static constexpr util::CheckReturnValue<CleanupType::kErrorReturn>::ReturnT execute(
-            const util::Status &status, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
-            if (unlikely(!status)) {
-                cancel_checkpoint_registry->registerCheckpoint(
-                    benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
-                return util::Error::kQueryCancelled;
-            }
-            return util::Error::kSuccess;
-        }
-    };
 
     template<>
     struct CancelProcedure<CleanupType::kException> {
@@ -69,8 +53,8 @@ namespace cancellation::query {
         }
     };
 
-    template<CleanupType cleanup_type>
-    class Context<CancelType::kAtomicEnum, cleanup_type> {
+    template<>
+    class Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> {
     public:
         explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
             cancel_checkpoint_registry) {
@@ -80,8 +64,31 @@ namespace cancellation::query {
             error_ = error;
         }
 
-        typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
-            return CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
+        [[nodiscard]] util::Error checkForInterrupt() const {
+            return error_.load();
+        }
+
+    private:
+        std::atomic<util::Error> error_{util::Error::kSuccess};
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+    };
+
+    template<>
+    class Context<CancelType::kAtomicEnum, CleanupType::kException> {
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+        }
+
+        void markInterrupted(util::Error error) {
+            error_ = error;
+        }
+
+        void checkForInterrupt() {
+            if (static_cast<int>(error_.load())) {
+                cancel_checkpoint_registry_->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                throw Exception<util::Error>(error_);
+            }
         }
 
     private:
@@ -263,8 +270,8 @@ namespace cancellation::query {
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };
 
-    template<CleanupType cleanup_type>
-    class Context<CancelType::kInterval, cleanup_type> {
+    template<>
+    class Context<CancelType::kInterval, CleanupType::kErrorReturn> {
     public:
         explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
             cancel_checkpoint_registry) {
@@ -277,15 +284,48 @@ namespace cancellation::query {
             error_ = error;
         }
 
-        typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
+        util::Error checkForInterrupt() {
 
             if (const auto now = util::Clock::getTimestamp(); now >= next_check_) {
                 next_check_ = now + interval_ticks;
 
 
-                return CancelProcedure<cleanup_type>::execute(error_.load(), cancel_checkpoint_registry_);
+                return error_;
             }
-            return util::CheckReturnValue<cleanup_type>::not_cancelled();
+            return util::CheckReturnValue<CleanupType::kErrorReturn>::not_cancelled();
+        }
+
+    private:
+        std::size_t next_check_;
+        std::atomic<util::Error> error_{util::Error::kSuccess};
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+    };
+
+    template<>
+    class Context<CancelType::kInterval, CleanupType::kException> {
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+            next_check_ = util::Clock::getTimestamp() + interval_ticks;
+        }
+
+        static constexpr std::size_t interval_ticks{50'000'000};
+
+        void markInterrupted(util::Error error) {
+            error_ = error;
+        }
+
+        void checkForInterrupt() {
+
+            if (const auto now = util::Clock::getTimestamp(); now >= next_check_) {
+                next_check_ = now + interval_ticks;
+
+                if (static_cast<bool>(error_.load())) {
+                    cancel_checkpoint_registry_->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                    throw Exception(error_.load());
+                }
+
+            }
         }
 
     private:
@@ -295,8 +335,8 @@ namespace cancellation::query {
     };
 
 
-    template<CleanupType cleanup_type>
-    class Context<CancelType::kUnion, cleanup_type> {
+    template<>
+    class Context<CancelType::kUnion, CleanupType::kErrorReturn> {
     public:
         explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
             cancel_checkpoint_registry) {
@@ -310,17 +350,45 @@ namespace cancellation::query {
             }
         }
 
-        typename util::CheckReturnValue<cleanup_type>::ReturnT checkForInterrupt() {
-            if constexpr (cleanup_type == CleanupType::kErrorReturn) {
+        util::Error checkForInterrupt() {
+
+            cancel_mutex_.lock();
+            auto return_value{status_ ? util::Error::kSuccess : util::Error::kQueryCancelled};
+            cancel_mutex_.unlock();
+            return return_value;
+
+        }
+
+    private:
+        util::Status status_;
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+        std::mutex cancel_mutex_;
+    };
+
+    template<>
+    class Context<CancelType::kUnion, CleanupType::kException> {
+    public:
+        explicit Context(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) : cancel_checkpoint_registry_(
+            cancel_checkpoint_registry) {
+        }
+
+        void markInterrupted(util::Error error) {
+            if (static_cast<bool>(error)) {
                 cancel_mutex_.lock();
-                auto return_value{CancelProcedure<cleanup_type>::execute(status_, cancel_checkpoint_registry_)};
-                cancel_mutex_.unlock();
-                return return_value;
-            } else {
-                cancel_mutex_.lock();
-                CancelProcedure<cleanup_type>::execute(status_, cancel_checkpoint_registry_);
+                status_ = util::Status::Error{"cancelled"};
                 cancel_mutex_.unlock();
             }
+        }
+
+        void checkForInterrupt() {
+
+                cancel_mutex_.lock();
+                if (!status_) {
+                    cancel_checkpoint_registry_->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                    throw Exception(status_);
+                }
+                cancel_mutex_.unlock();
+
         }
 
     private:
