@@ -170,15 +170,7 @@ namespace cancellation::query {
     };
 
 
-    static void cancel(benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
-        cancel_checkpoint_registry->registerCheckpoint(
-            benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
-        throw Exception{util::Error::kQueryCancelled};
-    }
 
-    static void nop(benchmark::CancelCheckpointRegistry * cancel_checkpoint_registry) {
-        (void) cancel_checkpoint_registry;
-    }
 
 
     template<>
@@ -188,21 +180,33 @@ namespace cancellation::query {
             cancel_checkpoint_registry) {
         }
 
+
+
         void markInterrupted(util::Error error) {
             if (static_cast<bool>(error)) {
-                cancel_function_ = cancel;
+                cancel_function_ = &Context::cancel;
             }
         }
 
 
         typename util::CheckReturnValue<CleanupType::kException>::ReturnT checkForInterrupt() {
-            (*cancel_function_)(cancel_checkpoint_registry_);
+            std::invoke(cancel_function_.load(), this);
         }
 
-    private:
-        typedef void (*CancelFunc)(benchmark::CancelCheckpointRegistry *);
 
-        std::atomic<CancelFunc> cancel_function_ = nop;
+    private:
+
+        void cancel() {
+            cancel_checkpoint_registry_->registerCheckpoint(
+                benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+            throw Exception{util::Error::kQueryCancelled};
+        }
+        void nop() {
+        }
+
+        typedef void (Context::*CancelFunc)();
+
+        std::atomic<CancelFunc> cancel_function_{&Context::nop};
 
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };

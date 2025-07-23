@@ -13,3 +13,4 @@ target_link_libraries(${EXECUTABLE_NAME} PUBLIC benchmark)
 target_link_libraries(${EXECUTABLE_NAME} PUBLIC util)
 
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES COMPILE_FLAGS "-save-temps=obj")
+target_link_libraries(main PRIVATE atomic)

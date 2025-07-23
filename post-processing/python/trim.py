@@ -1,12 +1,12 @@
 import pandas as pd
 
 if __name__ == '__main__':
-    data = pd.read_csv("../data/output.csv")
+    data = pd.read_csv("../data/output_long.csv")
     
     only_full_execution = data[data['CancelDelayMs'].isna()].copy()
  
     only_full_execution["ExecutionTimeMs"] = (only_full_execution['ExecutionFinished'] - only_full_execution['ExecutionStarted']) / 1e6 
-
+    only_full_execution.to_csv("complete_execution_time.csv")
 
     execution_time = only_full_execution.groupby(['CancelType', 'CleanupType']).mean().sort_values('ExecutionTimeMs')
     print(execution_time['ExecutionTimeMs'])
