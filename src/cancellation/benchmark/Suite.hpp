@@ -11,6 +11,11 @@
 namespace cancellation::benchmark {
     class Suite {
     public:
+        template <typename impl>
+        static void runTest() {
+            Benchmark<10, 10'000'000, impl>::run();
+        }
+
         static void runTests() {
             auto results = Benchmark<10, 10'000'000, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kAtomicEnum, CleanupType::kException>,
