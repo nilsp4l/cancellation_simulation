@@ -30,29 +30,6 @@ namespace cancellation::query {
     struct CancelProcedure {
     };
 
-
-
-    template<>
-    struct CancelProcedure<CleanupType::kException> {
-        static constexpr util::CheckReturnValue<CleanupType::kException>::ReturnT execute(
-            util::Error error, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
-            if (unlikely(error)) {
-                cancel_checkpoint_registry->registerCheckpoint(
-                    benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
-                throw Exception{error};
-            }
-        }
-
-        static constexpr util::CheckReturnValue<CleanupType::kException>::ReturnT execute(
-            const util::Status &status, benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry) {
-            if (unlikely(!status)) {
-                cancel_checkpoint_registry->registerCheckpoint(
-                    benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
-                throw Exception{status};
-            }
-        }
-    };
-
     template<>
     class Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> {
     public:
@@ -64,12 +41,10 @@ namespace cancellation::query {
             error_ = error;
         }
 
-        [[nodiscard]] util::Error checkForInterrupt() const {
-            return error_.load();
-        }
+        std::atomic<util::Error> error_{util::Error::kSuccess};
 
     private:
-        std::atomic<util::Error> error_{util::Error::kSuccess};
+
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
     };
 

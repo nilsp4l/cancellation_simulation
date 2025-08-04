@@ -19,8 +19,8 @@ namespace cancellation::tree {
                               query::Context<cancel_type, cleanup_type> *
                               context,
                               benchmark::CancelCheckpointRegistry *
-                              cancel_checkpoint_registry) : cancel_checkpoint_registry_(cancel_checkpoint_registry),
-                                                            delay_count_(delay_count), context_(context) {
+                              cancel_checkpoint_registry) : delay_count_(delay_count),
+                                                            context_(context), cancel_checkpoint_registry_(cancel_checkpoint_registry) {
         }
 
 
@@ -49,6 +49,46 @@ namespace cancellation::tree {
     private:
         volatile std::size_t delay_count_;
         query::Context<cancel_type, cleanup_type> *context_;
+        benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
+        static constexpr std::size_t inner_delay_amount{1000};
+    };
+
+
+    template <>
+    class LeafNodeImpl<CancelType::kAtomicEnum, CleanupType::kErrorReturn> : public Node {
+    public:
+        explicit LeafNodeImpl(std::size_t delay_count,
+                              query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> *
+                              context,
+                              benchmark::CancelCheckpointRegistry *
+                              cancel_checkpoint_registry) : delay_count_(delay_count),
+                                                            context_(context), cancel_checkpoint_registry_(cancel_checkpoint_registry) {
+        }
+
+
+        int next() override {
+
+            if (auto error = context_->error_.load(); static_cast<bool>(error)) {
+                cancel_checkpoint_registry_->registerCheckpoint(benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated);
+                return static_cast<int>(error);
+            }
+
+
+            volatile std::size_t inner_delay{inner_delay_amount};
+
+            while (--inner_delay);
+
+            if (--delay_count_ > 0) {
+                return static_cast<int>(util::Error::kSuccess);
+            }
+
+            // we are done
+            return static_cast<int>(util::Error::kFinished);
+        }
+
+    private:
+        volatile std::size_t delay_count_;
+        query::Context<CancelType::kAtomicEnum, CleanupType::kErrorReturn> *context_;
         benchmark::CancelCheckpointRegistry *cancel_checkpoint_registry_;
         static constexpr std::size_t inner_delay_amount{1000};
     };
