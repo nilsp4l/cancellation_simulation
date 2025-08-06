@@ -16,13 +16,16 @@ namespace cancellation::benchmark {
             Benchmark<10, 10'000'000, impl>::run();
         }
 
+        template <std::size_t size, std::size_t delay>
         static void runTests() {
-            auto results = Benchmark<10, 10'000'000, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
+            auto results = Benchmark<size, delay, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kAtomicEnum, CleanupType::kException>,
                 util::Impl<CancelType::kFunctionExchg, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kFunctionExchg, CleanupType::kException>,
                 util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kException>,
+                util::Impl<CancelType::kFunctionPointerExchgJustExec, CleanupType::kException>,
+                util::Impl<CancelType::kFunctionPointerExchgDifferentCompUnit, CleanupType::kException>,
                 util::Impl<CancelType::kFunctionPointerExchgCallConv, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kInterval, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kInterval, CleanupType::kException>,

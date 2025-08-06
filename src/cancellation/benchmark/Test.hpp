@@ -88,11 +88,11 @@ namespace cancellation::benchmark {
             cancel_checkpoint_registry.registerCheckpoint(CancelCheckpointRegistry::Checkpoint::kExecutionStarted);
             if constexpr (implementation::cleanupType() == CleanupType::kException) {
                 try {
-                    root->next();
+                    while (!root->next());
                 } catch (query::Exception<typename util::ExceptionReturnValue<implementation::cancelType()>::type> &) {
                 }
             } else {
-                root->next();
+                while (!root->next());
             }
             cancel_checkpoint_registry.registerCheckpoint(CancelCheckpointRegistry::Checkpoint::kExecutionFinished);
             if (cancel_thread) {
