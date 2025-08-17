@@ -1,9 +1,9 @@
-#include "cancellation/benchmark/CancelCheckpointRegistry.hpp"
+#include "cancellation/time_benchmark/CancelCheckpointRegistry.hpp"
 
 #include <assert.h>
 #include <stdexcept>
 
-namespace cancellation::benchmark
+namespace cancellation::time_benchmark
 {
     void CancelCheckpointRegistry::registerCheckpoint(Checkpoint checkpoint) {
         auto index{static_cast<std::size_t>(checkpoint)};

@@ -3,16 +3,16 @@
 
 #include "cancellation/tree/Builder.hpp"
 
-#include "cancellation/benchmark/Test.hpp"
+#include "cancellation/time_benchmark/Test.hpp"
 
-namespace cancellation::benchmark {
+namespace cancellation::time_benchmark {
     template<std::size_t size, std::size_t delay, typename... implementations>
     struct Benchmark {
     public:
 
-        static constexpr std::size_t no_cancel_delays{1};
-        static constexpr std::array<std::optional<std::size_t>, no_cancel_delays> cancel_delays{{std::nullopt}};//, 10, 105, 2121, 4321}};
-        static constexpr std::size_t no_repetitions{5};
+        static constexpr std::size_t no_cancel_delays{5};
+        static constexpr std::array<std::optional<std::size_t>, no_cancel_delays> cancel_delays{{std::nullopt, 10, 105, 2121, 4321}};
+        static constexpr std::size_t no_repetitions{20};
 
         static constexpr std::size_t no_tests{no_cancel_delays * no_repetitions};
 
@@ -25,7 +25,7 @@ namespace cancellation::benchmark {
 
     private:
         template<typename implementation>
-        static constexpr std::array<std::unique_ptr<Result>, no_tests> runTestsOn() {
+        static inline std::array<std::unique_ptr<Result>, no_tests> runTestsOn() {
             std::array<std::unique_ptr<Result>, no_tests> tests;
             std::size_t index{0};
             for (auto cancel_delay: cancel_delays) {

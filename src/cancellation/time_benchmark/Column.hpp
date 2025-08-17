@@ -2,10 +2,10 @@
 
 #include <optional>
 #include <cstdint>
-#include "cancellation/benchmark/ToString.hpp"
+#include "cancellation/time_benchmark/ToString.hpp"
 
 
-namespace cancellation::benchmark {
+namespace cancellation::time_benchmark {
     enum class ColumnEnum : std::size_t {
         kCancelType = 0,
         kCleanupType,

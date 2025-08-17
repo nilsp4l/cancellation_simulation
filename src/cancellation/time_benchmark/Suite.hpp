@@ -1,22 +1,22 @@
 #pragma once
 
-#include "cancellation/benchmark/Benchmark.hpp"
-#include "cancellation/benchmark/csv/Table.hpp"
-#include "cancellation/benchmark/Column.hpp"
-#include "cancellation/benchmark/csv/Printer.hpp"
+#include "cancellation/time_benchmark/Benchmark.hpp"
+#include "cancellation/time_benchmark/csv/Table.hpp"
+#include "cancellation/time_benchmark/Column.hpp"
+#include "cancellation/time_benchmark/csv/Printer.hpp"
 #include "cancellation/util/Impl.hpp"
 #include <fstream>
 
 
-namespace cancellation::benchmark {
+namespace cancellation::time_benchmark {
     class Suite {
     public:
-        template <typename impl>
+        template<typename impl>
         static void runTest() {
             Benchmark<10, 10'000'000, impl>::run();
         }
 
-        template <std::size_t size, std::size_t delay>
+        template<std::size_t size, std::size_t delay>
         static void runTests() {
             auto results = Benchmark<size, delay, util::Impl<CancelType::kAtomicEnum, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kAtomicEnum, CleanupType::kException>,
@@ -25,12 +25,13 @@ namespace cancellation::benchmark {
                 util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kFunctionPointerExchg, CleanupType::kException>,
                 util::Impl<CancelType::kFunctionPointerExchgJustExec, CleanupType::kException>,
+                util::Impl<CancelType::kFunctionPointerExchgDifferentCompUnit, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kFunctionPointerExchgDifferentCompUnit, CleanupType::kException>,
                 util::Impl<CancelType::kFunctionPointerExchgCallConv, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kInterval, CleanupType::kErrorReturn>,
                 util::Impl<CancelType::kInterval, CleanupType::kException>,
                 util::Impl<CancelType::kUnion, CleanupType::kErrorReturn>,
-                util::Impl<CancelType::kUnion, CleanupType::kException>>::run();
+                util::Impl<CancelType::kUnion, CleanupType::kException> >::run();
             csv::Table<static_cast<std::size_t>(ColumnEnum::size), ColumnType<ColumnEnum::kCancelType>::type, ColumnType
                 <ColumnEnum::kCleanupType>::type, ColumnType<ColumnEnum::kExecutionStarted>::type, ColumnType<
                     ColumnEnum::kRegistered>::type, ColumnType<ColumnEnum::kCancelInitiated>::type,

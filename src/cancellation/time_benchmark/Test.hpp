@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cancellation/benchmark/CancelCheckpointRegistry.hpp"
+#include "cancellation/time_benchmark/CancelCheckpointRegistry.hpp"
 #include "cancellation/CleanupType.hpp"
 #include "cancellation/query/Context.hpp"
 #include "cancellation/tree/Builder.hpp"
@@ -10,7 +10,7 @@
 #include <string>
 
 
-namespace cancellation::benchmark {
+namespace cancellation::time_benchmark {
     class Result {
     public:
         Result(std::string cancel_type_name, std::string cleanup_type_name, std::optional<std::size_t> cancel_delay_ms,

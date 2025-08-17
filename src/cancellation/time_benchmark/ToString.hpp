@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cancellation::benchmark {
+namespace cancellation::time_benchmark {
     template<typename T, T>
     struct ToString {
     };

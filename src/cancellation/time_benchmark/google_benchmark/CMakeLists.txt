@@ -1,0 +1,7 @@
+add_executable(execution_benchmark ExecutionBenchmark.cpp)
+target_include_directories(execution_benchmark PUBLIC ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(execution_benchmark PRIVATE benchmark::benchmark)
+
+target_link_libraries(execution_benchmark PRIVATE time_benchmark)
+target_link_libraries(execution_benchmark PUBLIC util)
+target_link_libraries(execution_benchmark PRIVATE cancel_functions)

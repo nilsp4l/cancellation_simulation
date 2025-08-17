@@ -4,9 +4,9 @@
 #include <chrono>
 #include <optional>
 #include <string>
-#include "cancellation/benchmark/ToString.hpp"
+#include "cancellation/time_benchmark/ToString.hpp"
 
-namespace cancellation::benchmark {
+namespace cancellation::time_benchmark {
     class CancelCheckpointRegistry {
     public:
         using CheckpointT = std::chrono::high_resolution_clock::time_point;
@@ -41,16 +41,16 @@ namespace cancellation::benchmark {
     };
 
     template<>
-    struct ToString<benchmark::CancelCheckpointRegistry::Checkpoint,
-                benchmark::CancelCheckpointRegistry::Checkpoint::kCancelRegistered> {
+    struct ToString<time_benchmark::CancelCheckpointRegistry::Checkpoint,
+                time_benchmark::CancelCheckpointRegistry::Checkpoint::kCancelRegistered> {
         static std::string value() {
             return "cancel-registered";
         }
     };
 
     template<>
-    struct ToString<benchmark::CancelCheckpointRegistry::Checkpoint,
-                benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated> {
+    struct ToString<time_benchmark::CancelCheckpointRegistry::Checkpoint,
+                time_benchmark::CancelCheckpointRegistry::Checkpoint::kCancelInitiated> {
         static std::string value() {
             return "cancel-initiated";
         }

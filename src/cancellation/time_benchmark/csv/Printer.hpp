@@ -3,9 +3,9 @@
 #include <string>
 #include <optional>
 #include <iostream>
-#include "cancellation/benchmark/csv/Table.hpp"
+#include "cancellation/time_benchmark/csv/Table.hpp"
 
-namespace cancellation::benchmark::csv {
+namespace cancellation::time_benchmark::csv {
 
     static std::string toString(std::size_t i) {
         return std::to_string(i);
