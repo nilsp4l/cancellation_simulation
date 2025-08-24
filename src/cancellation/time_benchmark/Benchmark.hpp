@@ -10,9 +10,9 @@ namespace cancellation::time_benchmark {
     struct Benchmark {
     public:
 
-        static constexpr std::size_t no_cancel_delays{5};
-        static constexpr std::array<std::optional<std::size_t>, no_cancel_delays> cancel_delays{{std::nullopt, 10, 105, 2121, 4321}};
-        static constexpr std::size_t no_repetitions{20};
+        static constexpr std::size_t no_cancel_delays{1};
+        static constexpr std::array<std::optional<std::size_t>, no_cancel_delays> cancel_delays{{std::nullopt}};//, 10, 105, 2121, 4321}};
+        static constexpr std::size_t no_repetitions{1};
 
         static constexpr std::size_t no_tests{no_cancel_delays * no_repetitions};
 

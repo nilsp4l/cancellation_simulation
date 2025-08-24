@@ -7,6 +7,6 @@ int main()
 
 
 
-    //cancellation::benchmark::Suite::runTest<cancellation::util::Impl<cancellation::CancelType::kFunctionPointerExchgDifferentCompUnit, cancellation::CleanupType::kException>>();
-    cancellation::time_benchmark::Suite::runTests<10, 10'000'000>();
+    cancellation::time_benchmark::Suite::runTest<cancellation::util::Impl<cancellation::CancelType::kAtomicEnum, cancellation::CleanupType::kErrorReturn>>();
+    //cancellation::time_benchmark::Suite::runTests<10, 10'000'000>();
 }
